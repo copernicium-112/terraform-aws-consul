@@ -122,14 +122,19 @@ function install_dependencies {
 
   if has_apt_get; then
     sudo apt-get update -y
-    sudo apt-get install -y awscli curl unzip jq
+    sudo apt-get install -y awscli curl unzip jq git
   elif has_yum; then
     sudo yum update -y
-    sudo yum install -y aws curl unzip jq
+    sudo yum install -y aws curl unzip jq git
   else
     log_error "Could not find apt-get or yum. Cannot install dependencies on this OS."
     exit 1
   fi
+
+  sudo mkdir -p /opt/gruntwork
+  git clone --branch v0.1.9 https://github.com/gruntwork-io/bash-commons.git /tmp/bash-commons
+  sudo cp -r /tmp/bash-commons/modules/bash-commons/src /opt/gruntwork/bash-commons
+
 }
 
 function user_exists {
@@ -158,6 +163,7 @@ function create_consul_install_paths {
   sudo mkdir -p "$path/config"
   sudo mkdir -p "$path/data"
   sudo mkdir -p "$path/tls/ca"
+  sudo mkdir -p "$path/policy"
 
   log_info "Changing ownership of $path to $username"
   sudo chown -R "$username:$username" "$path"
@@ -241,6 +247,8 @@ function install_binary {
 
   log_info "Copying Consul run script to $run_consul_dest_path"
   sudo cp "$SCRIPT_DIR/../run-consul/run-consul" "$run_consul_dest_path"
+  log_info "Copying common scripts to $run_consul_dest_path"
+  sudo cp "$SCRIPT_DIR/../run-consul/"*.sh "$bin_dir/"
   sudo chown "$username:$username" "$run_consul_dest_path"
   sudo chmod a+x "$run_consul_dest_path"
 }
