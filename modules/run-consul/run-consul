@@ -354,8 +354,8 @@ function run {
       "$redundancy_zone_tag" \
       "$disable_upgrade_migration" \
       "$upgrade_version_tag" \
-      "$enable_acl"
-      "$node_prefix"
+      "$enable_acl" \
+      "$node_prefix" \
       "${recursors[@]}"
   fi
 

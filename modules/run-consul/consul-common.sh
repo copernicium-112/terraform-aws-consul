@@ -245,7 +245,7 @@ function generate_consul_config {
   local -r enable_acl="${21}"
   local -r node_prefix="${22}"
 
-  shift 21
+  shift 22
   local -r recursors=("$@")
 
   local instance_id=""
