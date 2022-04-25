@@ -243,6 +243,7 @@ function generate_consul_config {
   local -r upgrade_version_tag=${20}
   local -r config_path="$config_dir/$CONSUL_CONFIG_FILE"
   local -r enable_acl="${21}"
+  local -r node_prefix="${22}"
 
   shift 21
   local -r recursors=("$@")
@@ -335,6 +336,13 @@ EOF
 EOF
 )
   fi
+
+  if [ -z "$node_prefix" ] || [ "$node_prefix" == "" ]; then
+      log_info "node_prefix is not set. Hence using default $instance_id from metadata"
+  else
+      log_info "adding $node_prefix-$instance_id to the node_name config"
+      instance_id="$node_prefix-$instance_id"
+    fi
 
   log_info "Creating default Consul configuration"
   local default_config_json
