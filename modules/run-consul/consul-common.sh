@@ -220,6 +220,35 @@ function get_owner_of_path {
   ls -ld "$path" | awk '{print $3}'
 }
 
+function get_consul_version {
+  local consul_version
+
+  consul_version=$(consul -version | grep 'v[0-9]' | sed 's/Consul v//g')
+
+  echo $consul_version
+}
+
+function get_consul_major_version {
+  local major_version
+
+  major_version=$(get_consul_version | cut -d'.' -f1)
+  echo $major_version
+}
+
+function get_consul_minor_version {
+  local minor_version
+
+  minor_version=$(get_consul_version | cut -d'.' -f2)
+  echo $minor_version
+}
+
+function get_consul_build_version {
+  local build_version
+
+  minor_version=$(get_consul_version | cut -d'.' -f3)
+  echo $build_version
+} 
+
 function generate_consul_config {
   local -r server="${1}"
   local -r config_dir="${2}"
@@ -344,6 +373,20 @@ EOF
       instance_id="$node_prefix-$instance_id"
     fi
 
+# adding default telemetry configuration for consul based on https://developer.hashicorp.com/consul/docs/release-notes/consul/v1_12_x#what-s-changed
+
+local telemetry_configuration=""
+  local consul_major_version=$(get_consul_major_version)
+  local consul_minor_version=$(get_consul_minor_version)
+  if [[ "$consul_major_version" -eq 1 && "$consul_minor_version" -lt 12 ]]; then
+    telemetry_configuration=$(cat <<EOF
+"telemetry": {
+  "disable_compat_1.9": true
+},
+EOF
+)
+  fi
+
   log_info "Creating default Consul configuration"
   local default_config_json
   default_config_json=$(cat <<EOF
@@ -361,9 +404,7 @@ EOF
   $gossip_encryption_configuration
   $rpc_encryption_configuration
   $autopilot_configuration
-  "telemetry": {
-    "disable_compat_1.9": true
-  },
+  $telemetry_configuration
   "ui_config": {
     "enabled": $ui_config_enabled
   }
@@ -391,7 +432,6 @@ function generate_bootstrap_acl_token {
       return
     fi
   done
-
   log_error "Unable to obtain ACL token. Aborting."
   exit 1
 }
@@ -471,32 +511,3 @@ function set_agent_token {
 
   consul acl set-agent-token $token_arg agent "$token"
 }
-
-function get_consul_version {
-  local consul_version
-
-  consul_version=$(consul -version | grep 'v[0-9]' | sed 's/Consul v//g')
-
-  echo $consul_version
-}
-
-function get_consul_major_version {
-  local major_version
-
-  major_version=$(get_consul_version | cut -d'.' -f1)
-  echo $major_version
-}
-
-function get_consul_minor_version {
-  local minor_version
-
-  minor_version=$(get_consul_version | cut -d'.' -f2)
-  echo $minor_version
-}
-
-function get_consul_build_version {
-  local build_version
-
-  minor_version=$(get_consul_version | cut -d'.' -f3)
-  echo $build_version
-} 
