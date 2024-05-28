@@ -509,5 +509,5 @@ function set_agent_token {
     token_arg=""
   fi
 
-  consul acl set-agent-token $token_arg agent "$token"
+  consul acl set-agent-token $token_arg agent "$agent_token"
 }
