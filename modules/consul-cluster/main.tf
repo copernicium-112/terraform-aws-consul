@@ -16,10 +16,9 @@ terraform {
 resource "aws_autoscaling_group" "autoscaling_group" {
   name_prefix = var.cluster_name
 
-  #launch_configuration = aws_launch_configuration.launch_configuration.name
   launch_template {
     id      = aws_launch_template.launch_template.id
-    version = "$Latest"
+    version = var.launch_template_version # by default, the latest version is used
   }
 
   availability_zones  = var.availability_zones
@@ -83,6 +82,7 @@ resource "aws_autoscaling_group" "autoscaling_group" {
   }
 }
 
+# marking the below section as obsolete and replacing with aws_launch_template
 # ---------------------------------------------------------------------------------------------------------------------
 # CREATE LAUNCH CONFIGURATION TO DEFINE WHAT RUNS ON EACH INSTANCE IN THE ASG
 # ---------------------------------------------------------------------------------------------------------------------
@@ -156,10 +156,6 @@ resource "aws_launch_template" "launch_template" {
 
   placement {
     tenancy = var.tenancy
-  }
-
-  network_interfaces {
-    associate_public_ip_address = var.associate_public_ip_address
   }
 
   block_device_mappings {
